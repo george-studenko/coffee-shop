@@ -19,6 +19,8 @@ class AuthError(Exception):
         self.error = error
         self.status_code = status_code
 
+# https://gnsd.eu.auth0.com/authorize?audience=CoffeeShop&response_type=token&client_id=eouUAkhu6CTHH4BDvR3BmEKSzbQzK6Fo&redirect_uri=http://localhost:3000/login-result
+
 
 ## Auth Header
 
