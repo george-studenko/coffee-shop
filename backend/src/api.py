@@ -35,7 +35,10 @@ print('Backend server restarted')
 @app.route('/drinks', methods=(['GET']))
 def get_drinks():
     drinks = Drink.query.all()
-    formatted_drinks = [drink.long() for drink in drinks]
+    if len(drinks) is 0:
+        abort(404)
+
+    formatted_drinks = [drink.short() for drink in drinks]
     return jsonify({
         'success': True,
         'drinks': formatted_drinks
@@ -51,6 +54,20 @@ def get_drinks():
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks-detail', methods=(['GET']))
+@requires_auth(permission='get:drinks-detail')
+def get_drinks_detail(permissions):
+    drinks = Drink.query.all()
+    if len(drinks) is 0:
+        abort(404)
+
+    formatted_drinks = [drink.long() for drink in drinks]
+    return jsonify({
+        'success': True,
+        'drinks': formatted_drinks
+    })
 
 
 '''
