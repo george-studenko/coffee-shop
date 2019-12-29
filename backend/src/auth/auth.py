@@ -13,13 +13,15 @@ API_AUDIENCE = 'CoffeeShop'
 AuthError Exception
 A standardized way to communicate auth failure modes
 '''
+
+
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
 
 
-## Auth Header
+# Auth Header
 
 def get_token_auth_header():
     try:
@@ -35,12 +37,11 @@ def get_token_auth_header():
 
 def check_permissions(permission, payload):
     if permission not in payload['permissions']:
-        print('invalid permissions...', permission,payload)
         raise AuthError('Unauthorized', 401)
     return True
 
 
-## Auth Header
+# Auth Header
 def verify_decode_jwt(token):
     rsa_key = get_public_rsa_key(token)
 
@@ -58,7 +59,8 @@ def verify_decode_jwt(token):
         except jwt.JWTClaimsError:
             raise AuthError({
                 'code': 'invalid_claims',
-                'description': 'Incorrect claims. Please, check the audience and issuer.'
+                'description': 'Incorrect claims. ' +
+                'Please, check the audience and issuer.'
             }, 401)
         except Exception:
             raise AuthError({
@@ -66,9 +68,9 @@ def verify_decode_jwt(token):
                 'description': 'Unable to parse authentication token.'
             }, 400)
     raise AuthError({
-                'code': 'invalid_header',
+        'code': 'invalid_header',
                 'description': 'Unable to find the appropriate key.'
-            }, 400)
+    }, 400)
 
 
 def validate_jwt(rsa_key, token):

@@ -11,7 +11,7 @@ app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
-#db_drop_and_create_all()
+# db_drop_and_create_all()
 print('Backend server restarted')
 
 # ROUTES
@@ -27,7 +27,6 @@ def get_drinks():
         'success': True,
         'drinks': formatted_drinks
     })
-
 
 
 @app.route('/drinks-detail', methods=(['GET']))
@@ -50,7 +49,7 @@ def get_drinks_detail(permissions):
 def post_drink(payload):
     form = request.get_json()
     title = form['title']
-    recipe = '['+ str(form['recipe']).replace('\'','"') + ']'
+    recipe = '[' + str(form['recipe']).replace('\'', '"') + ']'
     drink = Drink(title=title, recipe=recipe)
     drink.insert()
 
@@ -65,7 +64,6 @@ def update_drink(payload, id):
     form = request.get_json()
 
     drink = Drink.query.get(id)
-    print('DRINK IS:',drink)
     if drink is None:
         abort(404)
 
@@ -73,7 +71,7 @@ def update_drink(payload, id):
         drink.title = form['title']
 
     if 'recipe' in form.keys():
-        drink.recipe = '['+ str(form['recipe']).replace('\'','"') + ']'
+        drink.recipe = '[' + str(form['recipe']).replace('\'', '"') + ']'
 
     drink.update()
     drinks_formatted = []
@@ -102,35 +100,34 @@ def delete_drink(payload, id):
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
-                    "error": 422,
-                    "message": "unprocessable"
-                    }), 422
+        "success": False,
+        "error": 422,
+        "message": "unprocessable"
+    }), 422
 
 
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({
-                    "success": False,
-                    "error": 404,
-                    "message": "Not Found",
-                    "error_message": error
+        "success": False,
+        "error": 404,
+        "message": "Not Found",
+        "error_message": error
     }), 404
 
 
 @app.errorhandler(401)
 def unauthorized(error):
     return jsonify({
-                    "success": False,
-                    "error": 401,
-                    "message": "Unauthorized",
-                    "error_message": error
+        "success": False,
+        "error": 401,
+        "message": "Unauthorized",
+        "error_message": error
     }), 401
 
 
 @app.errorhandler(AuthError)
 def handle_auth_error(exception):
-    print('*** AUTH ERROR ***', exception)
     return jsonify({
         'success': False,
         'error': exception.status_code,
