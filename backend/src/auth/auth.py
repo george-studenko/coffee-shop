@@ -22,20 +22,21 @@ class AuthError(Exception):
 ## Auth Header
 
 def get_token_auth_header():
-    bearer_token = request.headers['Authorization']
-    if bearer_token is None:
+    try:
+        bearer_token = request.headers['Authorization']
+        token_parts = bearer_token.split(' ')
+        if len(token_parts) != 2:
+            raise AuthError('Header is malformed', 400)
+        token = token_parts[1]
+        return token
+    except Exception as exception:
         raise AuthError('Header is not present', 401)
-    token_parts = bearer_token.split(' ')
-    if len(token_parts) != 2:
-        raise AuthError('Header is malformed', 400)
-    token = token_parts[1]
-    return token
 
 
 def check_permissions(permission, payload):
     if permission not in payload['permissions']:
         print('invalid permissions...', permission,payload)
-        raise AuthError('Forbidden', 403)
+        raise AuthError('Unauthorized', 401)
     return True
 
 

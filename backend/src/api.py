@@ -20,23 +20,25 @@ print('Backend server restarted')
 @app.route('/drinks', methods=(['GET']))
 def get_drinks():
     drinks = Drink.query.all()
-    if len(drinks) is 0:
-        abort(404)
-    formatted_drinks = [drink.short() for drink in drinks]
+    formatted_drinks = []
+    if len(drinks) > 0:
+        formatted_drinks = [drink.short() for drink in drinks]
     return jsonify({
         'success': True,
         'drinks': formatted_drinks
     })
 
 
+
 @app.route('/drinks-detail', methods=(['GET']))
 @requires_auth(permission='get:drinks-detail')
 def get_drinks_detail(permissions):
     drinks = Drink.query.all()
-    if len(drinks) is 0:
-        abort(404)
+    formatted_drinks = []
 
-    formatted_drinks = [drink.long() for drink in drinks]
+    if len(drinks) is 0:
+        formatted_drinks = [drink.long() for drink in drinks]
+
     return jsonify({
         'success': True,
         'drinks': formatted_drinks
@@ -48,8 +50,7 @@ def get_drinks_detail(permissions):
 def post_drink(payload):
     form = request.get_json()
     title = form['title']
-    recipe = str(form['recipe']).replace('\'','"')
-    print('NEW DRINK:',title,recipe)
+    recipe = '['+ str(form['recipe']).replace('\'','"') + ']'
     drink = Drink(title=title, recipe=recipe)
     drink.insert()
 
@@ -58,29 +59,42 @@ def post_drink(payload):
     })
 
 
-'''
-@TODO implement endpoint
-    PATCH /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should update the corresponding row for <id>
-        it should require the 'patch:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
-        or appropriate status code indicating reason for failure
-'''
+@app.route('/drinks/<int:id>', methods=(['PATCH']))
+@requires_auth(permission='patch:drinks')
+def update_drink(payload, id):
+    form = request.get_json()
+
+    drink = Drink.query.get(id)
+    print('DRINK IS:',drink)
+    if drink is None:
+        abort(404)
+
+    if 'title' in form.keys():
+        drink.title = form['title']
+
+    if 'recipe' in form.keys():
+        drink.recipe = '['+ str(form['recipe']).replace('\'','"') + ']'
+
+    drink.update()
+    drinks_formatted = []
+    drinks_formatted.append(drink.long())
+    return jsonify({
+        'success': True,
+        'drinks': drinks_formatted
+    })
 
 
-'''
-@TODO implement endpoint
-    DELETE /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should delete the corresponding row for <id>
-        it should require the 'delete:drinks' permission
-    returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
-        or appropriate status code indicating reason for failure
-'''
+@app.route('/drinks/<int:id>', methods=(['DELETE']))
+@requires_auth(permission='delete:drinks')
+def delete_drink(payload, id):
+    drink = Drink.query.get(id)
+    if drink is None:
+        abort(404)
+    drink.delete()
+    return jsonify({
+        'success': True,
+        'delete': id
+    })
 
 
 # Error Handling
@@ -116,7 +130,7 @@ def unauthorized(error):
 
 @app.errorhandler(AuthError)
 def handle_auth_error(exception):
-    print('*** AUTH ERROR ***')
+    print('*** AUTH ERROR ***', exception)
     return jsonify({
         'success': False,
         'error': exception.status_code,
